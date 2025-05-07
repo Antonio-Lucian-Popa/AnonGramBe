@@ -72,7 +72,6 @@ public class KeycloakService {
         }
     }
 
-    /*
     public AccessTokenResponse refreshToken(String refreshToken) {
         try {
             var client = javax.ws.rs.client.ClientBuilder.newClient();
@@ -89,7 +88,7 @@ public class KeycloakService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to refresh token: " + e.getMessage(), e);
         }
-    } */
+    }
 
 
     public void deleteKeycloakUser(String keycloakId) {

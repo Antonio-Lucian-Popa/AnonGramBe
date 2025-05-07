@@ -32,7 +32,6 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public AccessTokenResponse refresh(@RequestBody RefreshTokenDto dto) {
-       // return keycloakService.refreshToken(dto.getRefreshToken());
-        return null;
+        return keycloakService.refreshToken(dto.getRefreshToken());
     }
 }
