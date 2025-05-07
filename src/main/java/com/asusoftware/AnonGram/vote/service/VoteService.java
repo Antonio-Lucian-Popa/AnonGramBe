@@ -27,6 +27,8 @@ public class VoteService {
         Vote vote = new Vote();
         vote.setId(UUID.randomUUID());
         vote.setVoteType(dto.getVoteType());
+        vote.setUserId(dto.getUserId());
+        vote.setPostId(dto.getPostId());
         vote.setCreatedAt(LocalDateTime.now());
 
         return mapper.map(voteRepository.save(vote), VoteResponseDto.class);
