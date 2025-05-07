@@ -34,6 +34,19 @@ public class VoteService {
         return mapper.map(voteRepository.save(vote), VoteResponseDto.class);
     }
 
+    public VoteResponseDto toggleVote(VoteRequestDto dto) {
+        Vote existingVote = voteRepository.findByUserIdAndPostId(dto.getUserId(), dto.getPostId())
+                .orElseThrow(() -> new VoteNotAllowedException("You have not voted on this post."));
+
+        if (existingVote.getVoteType() == dto.getVoteType()) {
+            voteRepository.delete(existingVote);
+            return null; // Vote removed
+        } else {
+            existingVote.setVoteType(dto.getVoteType());
+            return mapper.map(voteRepository.save(existingVote), VoteResponseDto.class);
+        }
+    }
+
     public boolean hasUserVoted(UUID userId, UUID postId) {
         return voteRepository.existsByUserIdAndPostId(userId, postId);
     }

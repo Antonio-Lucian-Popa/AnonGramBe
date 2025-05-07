@@ -21,6 +21,11 @@ public class VoteController {
         return ResponseEntity.ok(voteService.save(dto));
     }
 
+    @PutMapping
+    public ResponseEntity<VoteResponseDto> toggleVote(@RequestBody VoteRequestDto dto) {
+        return ResponseEntity.ok(voteService.toggleVote(dto));
+    }
+
     @GetMapping("/hasVoted/{userId}/{postId}")
     public ResponseEntity<Boolean> hasUserVoted(@RequestParam(name = "userId") UUID userId, @RequestParam(name = "postId") UUID postId) {
         return ResponseEntity.ok(voteService.hasUserVoted(userId, postId));
