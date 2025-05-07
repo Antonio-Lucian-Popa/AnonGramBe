@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -45,7 +44,7 @@ public class UserService {
     }
 
     public User getByKeycloakId(UUID keycloakId) {
-        return userRepository.findByKeycloakId(keycloakId).orElseThrow(() -> new UserNotFoundException("User with keycloakId " + keycloakId + " not found"));;
+        return userRepository.findByKeycloakId(keycloakId).orElseThrow(() -> new UserNotFoundException("User with keycloakId " + keycloakId + " not found"));
     }
 
     public void deleteByKeycloakId(UUID keycloakId) {
