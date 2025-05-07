@@ -43,6 +43,7 @@ public class KeycloakService {
         UserRepresentation user = new UserRepresentation();
         user.setUsername(userDTO.getEmail());
         user.setFirstName(userDTO.getAlias());
+        user.setLastName(userDTO.getAlias() + "_");
         user.setEmail(userDTO.getEmail());
         user.setEnabled(true);
         user.setEmailVerified(true);
@@ -71,6 +72,7 @@ public class KeycloakService {
         }
     }
 
+    /*
     public AccessTokenResponse refreshToken(String refreshToken) {
         try {
             var client = javax.ws.rs.client.ClientBuilder.newClient();
@@ -87,7 +89,7 @@ public class KeycloakService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to refresh token: " + e.getMessage(), e);
         }
-    }
+    } */
 
 
     public void deleteKeycloakUser(String keycloakId) {
@@ -96,6 +98,7 @@ public class KeycloakService {
     }
 
     private AccessTokenResponse obtainToken(String username, String password) {
+        System.out.println("Obtaining token for user: " + authServerUrl + " Password: " + clientId + " in realm: " + clientSecret);
         return KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
                 .realm(realm)

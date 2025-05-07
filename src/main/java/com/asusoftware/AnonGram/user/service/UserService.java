@@ -33,7 +33,7 @@ public class UserService {
         user.setAlias(dto.getAlias());
         user.setKeycloakId(UUID.fromString(keycloakId));
         user.setCreatedAt(LocalDateTime.now());
-
+        user.setKeycloakId(UUID.fromString(keycloakId));
         userRepository.save(user);
 
         return mapper.map(user, UserResponseDto.class);
