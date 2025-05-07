@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://antonio-dev.go.ro:15773/anongramdb
+    url: jdbc:postgresql://antonio-dev.go.ro:15770/anongramdb
     username: postgres
     password: password
     driver-class-name: org.postgresql.Driver
