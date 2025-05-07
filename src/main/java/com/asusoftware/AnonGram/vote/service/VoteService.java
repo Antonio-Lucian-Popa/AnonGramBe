@@ -24,9 +24,11 @@ public class VoteService {
             throw new VoteNotAllowedException("You have already voted on this post.");
         }
 
-        Vote vote = mapper.map(dto, Vote.class);
+        Vote vote = new Vote();
         vote.setId(UUID.randomUUID());
+        vote.setVoteType(dto.getVoteType());
         vote.setCreatedAt(LocalDateTime.now());
+
         return mapper.map(voteRepository.save(vote), VoteResponseDto.class);
     }
 
