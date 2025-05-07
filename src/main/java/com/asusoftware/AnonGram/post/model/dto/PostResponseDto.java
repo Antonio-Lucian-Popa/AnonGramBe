@@ -20,4 +20,6 @@ public class PostResponseDto {
 
     private int upvotes;
     private int downvotes;
+    private int commentCount;
+
 }

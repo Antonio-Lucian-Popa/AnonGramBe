@@ -21,10 +21,17 @@ public class CommentService {
     private final ModelMapper mapper;
 
     public CommentResponseDto save(CommentRequestDto dto) {
-        Comment comment = mapper.map(dto, Comment.class);
+        Comment comment = new Comment();
+        comment.setId(UUID.randomUUID()); // Generăm ID-ul
+        comment.setPostId(dto.getPostId());
+        comment.setUserId(dto.getUserId());
+        comment.setText(dto.getText());
+        comment.setCreatedAt(LocalDateTime.now());
+
         Comment saved = commentRepository.save(comment);
         return mapper.map(saved, CommentResponseDto.class);
     }
+
 
     public Page<CommentResponseDto> findByPostId(UUID postId, Pageable pageable) {
         return commentRepository.findByPostId(postId, pageable).map(comment -> mapper.map(comment, CommentResponseDto.class));

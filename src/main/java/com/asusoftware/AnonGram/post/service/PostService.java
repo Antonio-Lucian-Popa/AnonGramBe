@@ -1,5 +1,6 @@
 package com.asusoftware.AnonGram.post.service;
 
+import com.asusoftware.AnonGram.comment.repository.CommentRepository;
 import com.asusoftware.AnonGram.exception.PostNotFoundException;
 import com.asusoftware.AnonGram.post.model.Post;
 import com.asusoftware.AnonGram.post.model.dto.PostRequestDto;
@@ -38,6 +39,7 @@ public class PostService {
     private final ModelMapper mapper;
 
     private final VoteRepository voteRepository;
+    private final CommentRepository commentRepository;
 
     public PostResponseDto save(PostRequestDto postdto, List<MultipartFile> images) {
         UUID postId = UUID.randomUUID();
@@ -83,6 +85,7 @@ public class PostService {
         PostResponseDto dto = mapper.map(post, PostResponseDto.class);
         dto.setUpvotes(voteRepository.countByPostIdAndVoteType(id, (short) 1));
         dto.setDownvotes(voteRepository.countByPostIdAndVoteType(id, (short) -1));
+        dto.setCommentCount(commentRepository.countByPostId(post.getId()));
         return dto;
     }
 
@@ -92,6 +95,9 @@ public class PostService {
             dto.setImages(post.getImages());
             dto.setUpvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) 1));
             dto.setDownvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) -1));
+            // Număr comentarii pentru fiecare postare
+            int commentCount = commentRepository.countByPostId(post.getId());
+            dto.setCommentCount(commentCount);
             return dto;
         });
     }
