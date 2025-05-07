@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/votes")
+@RequestMapping("/api/v1/votes")
 @RequiredArgsConstructor
 public class VoteController {
 
