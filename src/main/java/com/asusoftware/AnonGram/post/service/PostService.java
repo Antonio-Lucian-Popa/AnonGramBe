@@ -5,6 +5,7 @@ import com.asusoftware.AnonGram.post.model.Post;
 import com.asusoftware.AnonGram.post.model.dto.PostRequestDto;
 import com.asusoftware.AnonGram.post.model.dto.PostResponseDto;
 import com.asusoftware.AnonGram.post.repository.PostRepository;
+import com.asusoftware.AnonGram.vote.repository.VoteRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -35,6 +36,8 @@ public class PostService {
     private String externalLinkBase;
 
     private final ModelMapper mapper;
+
+    private final VoteRepository voteRepository;
 
     public PostResponseDto save(PostRequestDto postdto, List<MultipartFile> images) {
         UUID postId = UUID.randomUUID();
@@ -75,15 +78,21 @@ public class PostService {
     }
 
     public PostResponseDto findById(UUID id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException("Post with ID " + id + " not found"));
-        return mapper.map(post, PostResponseDto.class);
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException("Post with ID " + id + " not found"));
+        PostResponseDto dto = mapper.map(post, PostResponseDto.class);
+        dto.setUpvotes(voteRepository.countByPostIdAndVoteType(id, (short) 1));
+        dto.setDownvotes(voteRepository.countByPostIdAndVoteType(id, (short) -1));
+        return dto;
     }
 
     public Page<PostResponseDto> findAll(Pageable pageable) {
         return postRepository.findAll(pageable).map(post -> {
-            PostResponseDto postResponseDto = mapper.map(post, PostResponseDto.class);
-            postResponseDto.setImages(post.getImages());
-            return postResponseDto;
+            PostResponseDto dto = mapper.map(post, PostResponseDto.class);
+            dto.setImages(post.getImages());
+            dto.setUpvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) 1));
+            dto.setDownvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) -1));
+            return dto;
         });
     }
 
