@@ -8,8 +8,10 @@ import com.asusoftware.AnonGram.vote.repository.VoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -19,33 +21,38 @@ public class VoteService {
     private final ModelMapper mapper;
 
     public VoteResponseDto save(VoteRequestDto dto) {
-        boolean alreadyVoted = voteRepository.existsByUserIdAndPostId(dto.getUserId(), dto.getPostId());
-        if (alreadyVoted) {
-            throw new VoteNotAllowedException("You have already voted on this post.");
-        }
-
-        Vote vote = new Vote();
-        vote.setId(UUID.randomUUID());
-        vote.setVoteType(dto.getVoteType());
-        vote.setUserId(dto.getUserId());
-        vote.setPostId(dto.getPostId());
-        vote.setCreatedAt(LocalDateTime.now());
-
-        return mapper.map(voteRepository.save(vote), VoteResponseDto.class);
+        return toggleVote(dto);
     }
 
+    @Transactional
     public VoteResponseDto toggleVote(VoteRequestDto dto) {
-        Vote existingVote = voteRepository.findByUserIdAndPostId(dto.getUserId(), dto.getPostId())
-                .orElseThrow(() -> new VoteNotAllowedException("You have not voted on this post."));
+        Optional<Vote> existingVote = voteRepository.findByUserIdAndPostId(dto.getUserId(), dto.getPostId());
 
-        if (existingVote.getVoteType() == dto.getVoteType()) {
-            voteRepository.delete(existingVote);
-            return null; // Vote removed
-        } else {
-            existingVote.setVoteType(dto.getVoteType());
-            return mapper.map(voteRepository.save(existingVote), VoteResponseDto.class);
+        if (existingVote.isPresent()) {
+            Vote vote = existingVote.get();
+            if (vote.getVoteType() == dto.getVoteType()) {
+                // Same voteType => remove vote
+                voteRepository.delete(vote);
+                return null; // or return a DTO with info that vote was removed
+            } else {
+                // Different voteType => update it
+                vote.setVoteType(dto.getVoteType());
+                vote.setCreatedAt(LocalDateTime.now());
+                return mapper.map(voteRepository.save(vote), VoteResponseDto.class);
+            }
         }
+
+        // No vote yet => create new
+        Vote newVote = new Vote();
+        newVote.setId(UUID.randomUUID());
+        newVote.setUserId(dto.getUserId());
+        newVote.setPostId(dto.getPostId());
+        newVote.setVoteType(dto.getVoteType());
+        newVote.setCreatedAt(LocalDateTime.now());
+
+        return mapper.map(voteRepository.save(newVote), VoteResponseDto.class);
     }
+
 
     public boolean hasUserVoted(UUID userId, UUID postId) {
         return voteRepository.existsByUserIdAndPostId(userId, postId);
