@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -20,8 +21,9 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String text;
 
-    @Column(name = "image_url")
-    private String imageUrl;
+    @ElementCollection
+    @CollectionTable(name = "car_images", joinColumns = @JoinColumn(name = "post_id"))
+    private List<String> images;
 
     private Double latitude;
     private Double longitude;
