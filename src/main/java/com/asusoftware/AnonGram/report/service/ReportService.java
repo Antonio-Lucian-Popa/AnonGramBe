@@ -20,11 +20,17 @@ public class ReportService {
     private final ModelMapper mapper;
 
     public ReportResponseDto save(ReportRequestDto dto) {
-        Report report = mapper.map(dto, Report.class);
+        Report report = new Report();
         report.setId(UUID.randomUUID());
+        report.setPostId(dto.getPostId());
+        report.setUserId(dto.getUserId());
+        report.setReason(dto.getReason());
         report.setCreatedAt(LocalDateTime.now());
-        return mapper.map(reportRepository.save(report), ReportResponseDto.class);
+
+        Report saved = reportRepository.save(report);
+        return mapper.map(saved, ReportResponseDto.class);
     }
+
 
     public Page<ReportResponseDto> findAll(Pageable pageable) {
         return reportRepository.findAll(pageable).map(report -> mapper.map(report, ReportResponseDto.class));
