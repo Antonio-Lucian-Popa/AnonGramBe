@@ -22,7 +22,7 @@ public class Post {
     private String text;
 
     @ElementCollection
-    @CollectionTable(name = "car_images", joinColumns = @JoinColumn(name = "post_id"))
+    @CollectionTable(name = "post_images", joinColumns = @JoinColumn(name = "post_id"))
     private List<String> images;
 
     private Double latitude;
