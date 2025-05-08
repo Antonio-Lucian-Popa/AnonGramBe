@@ -12,6 +12,8 @@ import java.util.UUID;
 @AllArgsConstructor
 public class PostTagId implements Serializable {
     private UUID postId;
-    private String tag;
+    private UUID tagId;
 }
+
+
 

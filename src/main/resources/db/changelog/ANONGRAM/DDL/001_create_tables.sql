@@ -21,14 +21,16 @@ CREATE TABLE posts (
 );
 
 CREATE TABLE tags (
-    tag VARCHAR(50) PRIMARY KEY
+    id UUID PRIMARY KEY,
+    name VARCHAR(50) UNIQUE NOT NULL
 );
 
 CREATE TABLE post_tags (
     post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
-    tag VARCHAR(50) REFERENCES tags(tag) ON DELETE CASCADE,
-    PRIMARY KEY (post_id, tag)
+    tag_id UUID REFERENCES tags(id) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag_id)
 );
+
 
 CREATE TABLE comments (
     id UUID PRIMARY KEY,

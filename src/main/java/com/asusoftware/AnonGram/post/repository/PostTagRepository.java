@@ -13,15 +13,28 @@ import java.util.UUID;
 
 @Repository
 public interface PostTagRepository extends JpaRepository<PostTag, PostTagId> {
+
+    boolean existsById(PostTagId id);
+
     List<PostTag> findByPostId(UUID postId);
-    List<PostTag> findByTagIn(List<String> tags);
 
-    @Query("SELECT pt.postId FROM PostTag pt WHERE LOWER(pt.tag) IN :tags")
-    Set<UUID> findPostIdsByTags(@Param("tags") List<String> tags);
+    @Query("""
+        SELECT pt.postId 
+        FROM PostTag pt 
+        JOIN Tag t ON pt.tagId = t.id 
+        WHERE LOWER(t.name) IN :tagNames
+    """)
+    Set<UUID> findPostIdsByTagNames(@Param("tagNames") List<String> tagNames);
 
-    @Query("SELECT pt.tag FROM PostTag pt WHERE pt.postId = :postId")
-    List<String> findTagsByPostId(@Param("postId") UUID postId);
-
-
+    @Query("""
+        SELECT t.name 
+        FROM PostTag pt 
+        JOIN Tag t ON pt.tagId = t.id 
+        WHERE pt.postId = :postId
+    """)
+    List<String> findTagNamesByPostId(@Param("postId") UUID postId);
 }
+
+
+
 

@@ -7,14 +7,16 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "post_tags")
 @IdClass(PostTagId.class)
+@Table(name = "post_tags")
 public class PostTag {
+
     @Id
-    @Column(name = "post_id")
+    @Column(name = "post_id", nullable = false)
     private UUID postId;
 
     @Id
-    @Column(name = "tag")
-    private String tag;
+    @Column(name = "tag_id", nullable = false)
+    private UUID tagId;
 }
+

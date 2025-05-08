@@ -4,10 +4,13 @@ import com.asusoftware.AnonGram.comment.repository.CommentRepository;
 import com.asusoftware.AnonGram.exception.PostNotFoundException;
 import com.asusoftware.AnonGram.post.model.Post;
 import com.asusoftware.AnonGram.post.model.PostTag;
+import com.asusoftware.AnonGram.post.model.PostTagId;
+import com.asusoftware.AnonGram.post.model.Tag;
 import com.asusoftware.AnonGram.post.model.dto.PostRequestDto;
 import com.asusoftware.AnonGram.post.model.dto.PostResponseDto;
 import com.asusoftware.AnonGram.post.repository.PostRepository;
 import com.asusoftware.AnonGram.post.repository.PostTagRepository;
+import com.asusoftware.AnonGram.post.repository.TagRepository;
 import com.asusoftware.AnonGram.vote.repository.VoteRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -42,15 +45,15 @@ public class PostService {
     private final VoteRepository voteRepository;
     private final CommentRepository commentRepository;
     private final PostTagRepository postTagRepository;
+    private final TagRepository tagRepository;
 
     @Transactional
-    public PostResponseDto save(PostRequestDto postdto, List<MultipartFile> images) {
+    public PostResponseDto save(PostRequestDto postDto, List<MultipartFile> images) {
         UUID postId = UUID.randomUUID();
-        Post post = mapper.map(postdto, Post.class);
+        Post post = mapper.map(postDto, Post.class);
         post.setId(postId);
         post.setCreatedAt(LocalDateTime.now());
 
-        // Save images
         if (images != null && !images.isEmpty()) {
             List<String> imagePaths = images.stream()
                     .filter(file -> !file.isEmpty())
@@ -59,23 +62,44 @@ public class PostService {
             post.setImages(imagePaths);
         }
 
-        // ✅ Save post and flush to ensure FK constraint will work
         Post savedPost = postRepository.save(post);
 
-        // Save tags
-        if (postdto.getTags() != null && !postdto.getTags().isEmpty()) {
-            List<PostTag> tagEntities = postdto.getTags().stream()
-                    .map(tag -> {
-                        PostTag postTag = new PostTag();
-                        postTag.setPostId(savedPost.getId());
-                        postTag.setTag(tag.toLowerCase());
-                        return postTag;
-                    })
-                    .toList();
-            postTagRepository.saveAll(tagEntities);
+        if (postDto.getTags() != null && !postDto.getTags().isEmpty()) {
+            Set<String> seenTags = new HashSet<>();
+
+            for (String tagName : postDto.getTags()) {
+                String normalized = tagName.trim().toLowerCase();
+
+                if (seenTags.contains(normalized)) continue;
+                seenTags.add(normalized);
+
+                Tag tag = tagRepository.findByNameIgnoreCase(normalized)
+                        .orElseGet(() -> {
+                            Tag newTag = new Tag();
+                            newTag.setId(UUID.randomUUID());
+                            newTag.setName(normalized);
+                            return tagRepository.save(newTag);
+                        });
+
+                PostTagId tagId = new PostTagId(savedPost.getId(), tag.getId());
+                if (!postTagRepository.existsById(tagId)) {
+                    PostTag postTag = new PostTag();
+                    postTag.setPostId(savedPost.getId());
+                    postTag.setTagId(tag.getId());
+                    postTagRepository.save(postTag);
+                }
+            }
         }
 
-        return mapper.map(savedPost, PostResponseDto.class);
+        // ✅ Include și tag-urile în răspunsul DTO
+        PostResponseDto response = mapper.map(savedPost, PostResponseDto.class);
+        response.setImages(savedPost.getImages());
+        response.setTags(postTagRepository.findTagNamesByPostId(savedPost.getId()));
+        response.setUpvotes(0);  // implicit nou
+        response.setDownvotes(0);
+        response.setCommentCount(0);
+
+        return response;
     }
 
 
@@ -109,14 +133,10 @@ public class PostService {
         dto.setUpvotes(voteRepository.countByPostIdAndVoteType(id, (short) 1));
         dto.setDownvotes(voteRepository.countByPostIdAndVoteType(id, (short) -1));
         dto.setCommentCount(commentRepository.countByPostId(id));
-
-        // 🔁 Adaugă tag-urile manual din tabelul intermediar
-        List<String> tags = postTagRepository.findTagsByPostId(id);
-        dto.setTags(tags);
+        dto.setTags(postTagRepository.findTagNamesByPostId(id));
 
         return dto;
     }
-
 
     public Page<PostResponseDto> findAll(String search, String tags, Double radius, Pageable pageable) {
         Page<Post> posts;
@@ -127,7 +147,7 @@ public class PostService {
                     .map(String::toLowerCase)
                     .toList();
 
-            Set<UUID> postIds = postTagRepository.findPostIdsByTags(tagList);
+            Set<UUID> postIds = postTagRepository.findPostIdsByTagNames(tagList);
 
             if (!postIds.isEmpty()) {
                 if (search != null && !search.isBlank()) {
@@ -151,11 +171,10 @@ public class PostService {
             dto.setUpvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) 1));
             dto.setDownvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) -1));
             dto.setCommentCount(commentRepository.countByPostId(post.getId()));
-            dto.setTags(postTagRepository.findTagsByPostId(post.getId()));
+            dto.setTags(postTagRepository.findTagNamesByPostId(post.getId()));
             return dto;
         });
     }
-
 
     public void deleteByIdIfOwned(UUID postId, UUID userId) {
         Post post = postRepository.findByIdAndUserId(postId, userId)

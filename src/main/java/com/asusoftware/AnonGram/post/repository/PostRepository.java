@@ -14,11 +14,16 @@ import java.util.UUID;
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, UUID> {
+
     Page<Post> findAll(Pageable pageable);
+
     Optional<Post> findByIdAndUserId(UUID id, UUID userId);
+
     Page<Post> findByTextContainingIgnoreCase(String search, Pageable pageable);
 
     Page<Post> findByIdInAndTextContainingIgnoreCase(List<UUID> ids, String search, Pageable pageable);
-    Page<Post> findByIdIn(List<UUID> ids, Pageable pageable);
 
+    Page<Post> findByIdIn(List<UUID> ids, Pageable pageable);
 }
+
+
