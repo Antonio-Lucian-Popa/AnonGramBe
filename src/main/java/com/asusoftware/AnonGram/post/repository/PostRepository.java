@@ -24,6 +24,53 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     Page<Post> findByIdInAndTextContainingIgnoreCase(List<UUID> ids, String search, Pageable pageable);
 
     Page<Post> findByIdIn(List<UUID> ids, Pageable pageable);
+
+    @Query(
+            value = """
+        SELECT * FROM posts p
+        WHERE (:search IS NULL OR p.text ILIKE CONCAT('%', :search, '%'))
+          AND (:tagCount = 0 OR EXISTS (
+              SELECT 1 FROM post_tags pt
+              WHERE pt.post_id = p.id AND pt.tag_id = ANY(:tagIds)
+          ))
+          AND (:radius IS NULL OR (
+              p.latitude IS NOT NULL AND p.longitude IS NOT NULL AND
+              6371 * acos(
+                  cos(radians(:latitude)) * cos(radians(p.latitude)) *
+                  cos(radians(p.longitude) - radians(:longitude)) +
+                  sin(radians(:latitude)) * sin(radians(p.latitude))
+              ) <= :radius
+          ))
+        """,
+            countQuery = """
+        SELECT COUNT(*) FROM posts p
+        WHERE (:search IS NULL OR p.text ILIKE CONCAT('%', :search, '%'))
+          AND (:tagCount = 0 OR EXISTS (
+              SELECT 1 FROM post_tags pt
+              WHERE pt.post_id = p.id AND pt.tag_id = ANY(:tagIds)
+          ))
+          AND (:radius IS NULL OR (
+              p.latitude IS NOT NULL AND p.longitude IS NOT NULL AND
+              6371 * acos(
+                  cos(radians(:latitude)) * cos(radians(p.latitude)) *
+                  cos(radians(p.longitude) - radians(:longitude)) +
+                  sin(radians(:latitude)) * sin(radians(p.latitude))
+              ) <= :radius
+          ))
+        """,
+            nativeQuery = true
+    )
+    Page<Post> findFilteredPostsNative(
+            @Param("search") String search,
+            @Param("tagIds") UUID[] tagIds,
+            @Param("tagCount") int tagCount,
+            @Param("radius") Double radius,
+            @Param("latitude") Double latitude,
+            @Param("longitude") Double longitude,
+            Pageable pageable
+    );
+
+
 }
 
 

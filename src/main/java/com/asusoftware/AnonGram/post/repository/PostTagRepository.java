@@ -33,6 +33,10 @@ public interface PostTagRepository extends JpaRepository<PostTag, PostTagId> {
         WHERE pt.postId = :postId
     """)
     List<String> findTagNamesByPostId(@Param("postId") UUID postId);
+
+    @Query("SELECT DISTINCT pt.tagId FROM PostTag pt JOIN Tag t ON pt.tagId = t.id WHERE LOWER(t.name) IN :tagNames")
+    List<UUID> findTagIdsByTagNames(@Param("tagNames") List<String> tagNames);
+
 }
 
 

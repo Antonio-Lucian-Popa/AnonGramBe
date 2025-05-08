@@ -40,9 +40,11 @@ public class PostController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String tags,
+            @RequestParam(required = false) Double latitude,
+            @RequestParam(required = false) Double longitude,
             @RequestParam(required = false) Double radius) {
 
-        Page<PostResponseDto> posts = postService.findAll(search, tags, radius, PageRequest.of(page, size));
+        Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size));
         return ResponseEntity.ok(posts);
     }
 

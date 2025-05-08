@@ -138,32 +138,40 @@ public class PostService {
         return dto;
     }
 
-    public Page<PostResponseDto> findAll(String search, String tags, Double radius, Pageable pageable) {
-        Page<Post> posts;
+    public Page<PostResponseDto> findAll(
+            String search,
+            String tags,
+            Double latitude,
+            Double longitude,
+            Double radius,
+            Pageable pageable
+    )
+    {
+    List<UUID> tagIds = null;
 
         if (tags != null && !tags.isBlank()) {
             List<String> tagList = Arrays.stream(tags.split(","))
                     .map(String::trim)
                     .map(String::toLowerCase)
                     .toList();
-
-            Set<UUID> postIds = postTagRepository.findPostIdsByTagNames(tagList);
-
-            if (!postIds.isEmpty()) {
-                if (search != null && !search.isBlank()) {
-                    posts = postRepository.findByIdInAndTextContainingIgnoreCase(postIds.stream().toList(), search, pageable);
-                } else {
-                    posts = postRepository.findByIdIn(postIds.stream().toList(), pageable);
-                }
-            } else {
-                posts = Page.empty();
-            }
-
-        } else if (search != null && !search.isBlank()) {
-            posts = postRepository.findByTextContainingIgnoreCase(search, pageable);
-        } else {
-            posts = postRepository.findAll(pageable);
+            tagIds = postTagRepository.findTagIdsByTagNames(tagList);
+            if (tagIds.isEmpty()) return Page.empty(); // early return dacă nu există taguri
         }
+
+        UUID[] tagArray = tagIds != null ? tagIds.toArray(new UUID[0]) : new UUID[0];
+        int tagCount = tagArray.length;
+
+        Page<Post> posts = postRepository.findFilteredPostsNative(
+                search,
+                tagArray,
+                tagCount,
+                radius,
+                latitude,
+                longitude,
+                pageable
+        );
+
+
 
         return posts.map(post -> {
             PostResponseDto dto = mapper.map(post, PostResponseDto.class);
