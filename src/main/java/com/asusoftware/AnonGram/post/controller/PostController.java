@@ -29,6 +29,7 @@ public class PostController {
     public ResponseEntity<PostResponseDto> createPost(
             @RequestPart("post") PostRequestDto postDto,
             @RequestPart(value = "images", required = false) List<MultipartFile> images) {
+        System.out.println("Received post: " + postDto);
         return ResponseEntity.ok(postService.save(postDto, images));
     }
 
@@ -36,11 +37,15 @@ public class PostController {
     @GetMapping
     public ResponseEntity<Page<PostResponseDto>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String tags,
+            @RequestParam(required = false) Double radius) {
 
-        Page<PostResponseDto> posts = postService.findAll(PageRequest.of(page, size));
+        Page<PostResponseDto> posts = postService.findAll(search, tags, radius, PageRequest.of(page, size));
         return ResponseEntity.ok(posts);
     }
+
 
     // ✅ Get post by ID
     @GetMapping("/{id}")

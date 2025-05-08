@@ -16,9 +16,18 @@ CREATE TABLE posts (
     image_url VARCHAR(255), -- opțional
     latitude DOUBLE PRECISION,
     longitude DOUBLE PRECISION,
-    tag VARCHAR(50), -- ex: #confesiune, #funny
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at TIMESTAMP -- opțional, pentru ștergere automată
+);
+
+CREATE TABLE tags (
+    tag VARCHAR(50) PRIMARY KEY
+);
+
+CREATE TABLE post_tags (
+    post_id UUID REFERENCES posts(id) ON DELETE CASCADE,
+    tag VARCHAR(50) REFERENCES tags(tag) ON DELETE CASCADE,
+    PRIMARY KEY (post_id, tag)
 );
 
 CREATE TABLE comments (

@@ -14,7 +14,7 @@ public class PostResponseDto {
     private List<String> images;
     private Double latitude;
     private Double longitude;
-    private String tag;
+    private List<String> tags;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
 
