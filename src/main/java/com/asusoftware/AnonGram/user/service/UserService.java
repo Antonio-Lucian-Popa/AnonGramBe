@@ -48,6 +48,11 @@ public class UserService {
     }
 
     public void deleteByKeycloakId(UUID keycloakId) {
-        userRepository.findByKeycloakId(keycloakId).ifPresent(userRepository::delete);
+        userRepository.findByKeycloakId(keycloakId).ifPresent(user -> {
+            keycloakService.deleteKeycloakUser(keycloakId.toString()); // ← Șterge din Keycloak
+            userRepository.delete(user);                               // ← Șterge din DB local
+        });
     }
+
+
 }
