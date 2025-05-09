@@ -57,4 +57,9 @@ public class VoteService {
     public boolean hasUserVoted(UUID userId, UUID postId) {
         return voteRepository.existsByUserIdAndPostId(userId, postId);
     }
+
+    public void deleteVote(UUID id) {
+        Vote vote = voteRepository.findById(id).orElseThrow(() -> new VoteNotAllowedException("Vote with id " + id + " not found"));
+        voteRepository.delete(vote);
+    }
 }

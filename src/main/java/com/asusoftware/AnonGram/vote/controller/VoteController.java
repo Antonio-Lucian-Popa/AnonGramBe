@@ -30,4 +30,10 @@ public class VoteController {
     public ResponseEntity<Boolean> hasUserVoted(@RequestParam(name = "userId") UUID userId, @RequestParam(name = "postId") UUID postId) {
         return ResponseEntity.ok(voteService.hasUserVoted(userId, postId));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteVote(@PathVariable UUID id) {
+        voteService.deleteVote(id);
+        return ResponseEntity.noContent().build();
+    }
 }
