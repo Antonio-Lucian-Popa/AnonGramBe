@@ -1,7 +1,7 @@
 server:
+  port: 8084
   servlet:
     context-path: /anongram-api
-    port: 8084
 spring:
   datasource:
     url: jdbc:postgresql://antonio-dev.go.ro:15770/anongramdb
