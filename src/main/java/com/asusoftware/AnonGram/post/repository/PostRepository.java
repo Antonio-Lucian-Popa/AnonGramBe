@@ -33,14 +33,19 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
               SELECT 1 FROM post_tags pt
               WHERE pt.post_id = p.id AND pt.tag_id = ANY(:tagIds)
           ))
-          AND (:radius IS NULL OR (
-              p.latitude IS NOT NULL AND p.longitude IS NOT NULL AND
-              6371 * acos(
-                  cos(radians(:latitude)) * cos(radians(p.latitude)) *
-                  cos(radians(p.longitude) - radians(:longitude)) +
-                  sin(radians(:latitude)) * sin(radians(p.latitude))
-              ) <= :radius
-          ))
+         AND (
+                          :radius IS NULL OR (
+                            (
+                              p.latitude IS NOT NULL AND p.longitude IS NOT NULL AND
+                              6371 * acos(
+                                cos(radians(:latitude)) * cos(radians(p.latitude)) *
+                                cos(radians(p.longitude) - radians(:longitude)) +
+                                sin(radians(:latitude)) * sin(radians(p.latitude))
+                              ) <= :radius
+                            )
+                            OR (p.latitude IS NULL OR p.longitude IS NULL) -- adăugat
+                          )
+                        )
         """,
             countQuery = """
         SELECT COUNT(*) FROM posts p
