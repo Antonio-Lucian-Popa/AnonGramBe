@@ -22,6 +22,7 @@ public interface VoteRepository extends JpaRepository<Vote, UUID> {
 
     int countByPostIdAndVoteType(UUID postId, short voteType);
 
+    Optional<Vote> findByPostIdAndUserId(UUID postId, UUID userId);
 
 
 }

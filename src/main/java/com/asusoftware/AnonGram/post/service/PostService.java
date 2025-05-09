@@ -11,6 +11,7 @@ import com.asusoftware.AnonGram.post.model.dto.PostResponseDto;
 import com.asusoftware.AnonGram.post.repository.PostRepository;
 import com.asusoftware.AnonGram.post.repository.PostTagRepository;
 import com.asusoftware.AnonGram.post.repository.TagRepository;
+import com.asusoftware.AnonGram.user.model.User;
 import com.asusoftware.AnonGram.user.repository.UserRepository;
 import com.asusoftware.AnonGram.vote.repository.VoteRepository;
 import lombok.AllArgsConstructor;
@@ -126,10 +127,12 @@ public class PostService {
         }
     }
 
-    public PostResponseDto findById(UUID id) {
+    public PostResponseDto findById(UUID id, UUID jwtUserId) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new PostNotFoundException("Post with ID " + id + " not found"));
 
+        User user = userRepository.findByKeycloakId(jwtUserId)
+                .orElseThrow(() -> new NoSuchElementException("Owner with ID " + jwtUserId + " not found"));
         PostResponseDto dto = mapper.map(post, PostResponseDto.class);
         dto.setImages(post.getImages());
         dto.setUpvotes(voteRepository.countByPostIdAndVoteType(id, (short) 1));
@@ -137,8 +140,14 @@ public class PostService {
         dto.setCommentCount(commentRepository.countByPostId(id));
         dto.setTags(postTagRepository.findTagNamesByPostId(id));
         dto.setUserAlias(getUserAlias(post.getUserId()));
+
+        // Verifică dacă user-ul logat a votat această postare
+        voteRepository.findByPostIdAndUserId(id, user.getId())
+                .ifPresent(v -> dto.setCurrentUserVote(v.getVoteType()));
+
         return dto;
     }
+
 
     public Page<PostResponseDto> findAll(
             String search,
@@ -146,23 +155,31 @@ public class PostService {
             Double latitude,
             Double longitude,
             Double radius,
-            Pageable pageable
-    )
-    {
-    List<UUID> tagIds = null;
+            Pageable pageable,
+            UUID jwtUserId
+    ) {
+        // Validare user (dacă jwtUserId e transmis)
+        final User user = jwtUserId != null
+                ? userRepository.findByKeycloakId(jwtUserId)
+                .orElseThrow(() -> new NoSuchElementException("User with ID " + jwtUserId + " not found"))
+                : null;
 
+
+        // Preluare tag-uri dacă sunt
+        List<UUID> tagIds = null;
         if (tags != null && !tags.isBlank()) {
             List<String> tagList = Arrays.stream(tags.split(","))
                     .map(String::trim)
                     .map(String::toLowerCase)
                     .toList();
             tagIds = postTagRepository.findTagIdsByTagNames(tagList);
-            if (tagIds.isEmpty()) return Page.empty(); // early return dacă nu există taguri
+            if (tagIds.isEmpty()) return Page.empty(); // Fără rezultate
         }
 
         UUID[] tagArray = tagIds != null ? tagIds.toArray(new UUID[0]) : new UUID[0];
         int tagCount = tagArray.length;
 
+        // Căutare postări
         Page<Post> posts = postRepository.findFilteredPostsNative(
                 search,
                 tagArray,
@@ -173,8 +190,6 @@ public class PostService {
                 pageable
         );
 
-
-
         return posts.map(post -> {
             PostResponseDto dto = mapper.map(post, PostResponseDto.class);
             dto.setImages(post.getImages());
@@ -183,9 +198,17 @@ public class PostService {
             dto.setCommentCount(commentRepository.countByPostId(post.getId()));
             dto.setTags(postTagRepository.findTagNamesByPostId(post.getId()));
             dto.setUserAlias(getUserAlias(post.getUserId()));
+
+            // Setare vot curent (dacă e logat)
+            if (user != null) {
+                voteRepository.findByPostIdAndUserId(post.getId(), user.getId())
+                        .ifPresent(v -> dto.setCurrentUserVote(v.getVoteType()));
+            }
+
             return dto;
         });
     }
+
 
     private String getUserAlias(UUID userId) {
         return userRepository.findAliasById(userId)
