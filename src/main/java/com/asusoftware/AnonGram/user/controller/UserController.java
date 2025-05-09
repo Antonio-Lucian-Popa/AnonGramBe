@@ -27,9 +27,9 @@ public class UserController {
     }
     // Delete user (Keycloak + local)
     @DeleteMapping("/{keycloakId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable String keycloakId) {
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID keycloakId) {
         keycloakService.deleteKeycloakUser(keycloakId);
-        userService.deleteByKeycloakId(UUID.fromString(keycloakId));
+        userService.deleteByKeycloakId(keycloakId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.Response;
 import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -91,9 +92,9 @@ public class KeycloakService {
     }
 
 
-    public void deleteKeycloakUser(String keycloakId) {
+    public void deleteKeycloakUser(UUID keycloakId) {
         Keycloak keycloak = getKeycloakAdminInstance();
-        keycloak.realm(realm).users().delete(keycloakId);
+        keycloak.realm(realm).users().delete(String.valueOf(keycloakId));
     }
 
     private AccessTokenResponse obtainToken(String username, String password) {
