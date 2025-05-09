@@ -17,6 +17,7 @@ public class PostResponseDto {
     private List<String> tags;
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
+    private String userAlias;
 
     private int upvotes;
     private int downvotes;

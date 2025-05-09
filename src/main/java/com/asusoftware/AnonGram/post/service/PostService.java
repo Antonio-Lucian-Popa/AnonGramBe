@@ -11,6 +11,7 @@ import com.asusoftware.AnonGram.post.model.dto.PostResponseDto;
 import com.asusoftware.AnonGram.post.repository.PostRepository;
 import com.asusoftware.AnonGram.post.repository.PostTagRepository;
 import com.asusoftware.AnonGram.post.repository.TagRepository;
+import com.asusoftware.AnonGram.user.repository.UserRepository;
 import com.asusoftware.AnonGram.vote.repository.VoteRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final PostTagRepository postTagRepository;
     private final TagRepository tagRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public PostResponseDto save(PostRequestDto postDto, List<MultipartFile> images) {
@@ -134,7 +136,7 @@ public class PostService {
         dto.setDownvotes(voteRepository.countByPostIdAndVoteType(id, (short) -1));
         dto.setCommentCount(commentRepository.countByPostId(id));
         dto.setTags(postTagRepository.findTagNamesByPostId(id));
-
+        dto.setUserAlias(getUserAlias(post.getUserId()));
         return dto;
     }
 
@@ -180,9 +182,16 @@ public class PostService {
             dto.setDownvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) -1));
             dto.setCommentCount(commentRepository.countByPostId(post.getId()));
             dto.setTags(postTagRepository.findTagNamesByPostId(post.getId()));
+            dto.setUserAlias(getUserAlias(post.getUserId()));
             return dto;
         });
     }
+
+    private String getUserAlias(UUID userId) {
+        return userRepository.findAliasById(userId)
+                .orElse("Anonymous");
+    }
+
 
     public void deleteByIdIfOwned(UUID postId, UUID userId) {
         Post post = postRepository.findByIdAndUserId(postId, userId)
