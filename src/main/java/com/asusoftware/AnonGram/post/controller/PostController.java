@@ -9,6 +9,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,17 +44,18 @@ public class PostController {
             @RequestParam(required = false) String tags,
             @RequestParam(required = false) Double latitude,
             @RequestParam(required = false) Double longitude,
-            @RequestParam(required = false) Double radius) {
+            @RequestParam(required = false) Double radius,
+            @AuthenticationPrincipal Jwt jwt) {
 
-        Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size));
+        Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size), UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(posts);
     }
 
 
     // ✅ Get post by ID
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponseDto> getPostById(@PathVariable UUID id) {
-        PostResponseDto post = postService.findById(id);
+    public ResponseEntity<PostResponseDto> getPostById(@PathVariable UUID id, @AuthenticationPrincipal Jwt jwt) {
+        PostResponseDto post = postService.findById(id, UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(post);
     }
 

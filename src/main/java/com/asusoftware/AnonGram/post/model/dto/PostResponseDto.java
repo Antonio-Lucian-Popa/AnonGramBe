@@ -18,6 +18,8 @@ public class PostResponseDto {
     private LocalDateTime createdAt;
     private LocalDateTime expiresAt;
     private String userAlias;
+    private Short currentUserVote; // 1 = upvote, -1 = downvote, null = nimic
+
 
     private int upvotes;
     private int downvotes;
