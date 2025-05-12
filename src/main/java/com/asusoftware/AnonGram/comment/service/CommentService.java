@@ -32,7 +32,7 @@ public class CommentService {
 
         Comment saved = commentRepository.save(comment);
         CommentResponseDto commentResponseDto = mapper.map(saved, CommentResponseDto.class);
-        commentResponseDto.setUserAlis(postService.getUserAlias(comment.getUserId()));
+        commentResponseDto.setUserAlias(postService.getUserAlias(comment.getUserId()));
         return commentResponseDto;
     }
 
@@ -40,7 +40,7 @@ public class CommentService {
     public Page<CommentResponseDto> findByPostId(UUID postId, Pageable pageable) {
         return commentRepository.findByPostId(postId, pageable).map(comment -> {
             CommentResponseDto dto = mapper.map(comment, CommentResponseDto.class);
-            dto.setUserAlis(postService.getUserAlias(comment.getUserId()));
+            dto.setUserAlias(postService.getUserAlias(comment.getUserId()));
             return dto;
         });
     }

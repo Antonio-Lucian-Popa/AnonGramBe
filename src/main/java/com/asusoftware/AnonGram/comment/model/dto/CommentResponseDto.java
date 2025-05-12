@@ -10,7 +10,7 @@ public class CommentResponseDto {
     private UUID id;
     private UUID postId;
     private UUID userId;
-    private String userAlis;
+    private String userAlias;
     private String text;
     private LocalDateTime createdAt;
 }
