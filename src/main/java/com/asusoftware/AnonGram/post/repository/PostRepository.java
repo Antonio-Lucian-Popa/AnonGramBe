@@ -78,19 +78,8 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
 
     int deleteByExpiresAtBefore(LocalDateTime now);
 
-
-    @Query(value = """
-    SELECT * FROM posts p
-    WHERE p.user_id = :userId
-    """,
-            countQuery = """
-    SELECT COUNT(*) FROM posts p
-    WHERE p.user_id = :userId
-    """,
-            nativeQuery = true)
+    @Query("SELECT p FROM Post p WHERE p.userId = :userId")
     Page<Post> findByUserId(@Param("userId") UUID userId, Pageable pageable);
-
-
 
 }
 
