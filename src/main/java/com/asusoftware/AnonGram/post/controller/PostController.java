@@ -49,7 +49,7 @@ public class PostController {
             @RequestParam(required = false) Double radius,
             @AuthenticationPrincipal Jwt jwt) {
 
-        Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")), UUID.fromString(jwt.getSubject()));
+        Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size), UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(posts);
     }
 
