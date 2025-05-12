@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -50,6 +52,17 @@ public class PostController {
         Page<PostResponseDto> posts = postService.findAll(search, tags, latitude, longitude, radius, PageRequest.of(page, size), UUID.fromString(jwt.getSubject()));
         return ResponseEntity.ok(posts);
     }
+
+    @GetMapping("/user-profile/posts")
+    public Page<PostResponseDto> getPostsByUserId(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return postService.findAllByUserId(UUID.fromString(jwt.getSubject()), pageable);
+    }
+
 
 
     // ✅ Get post by ID
