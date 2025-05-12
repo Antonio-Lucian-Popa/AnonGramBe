@@ -209,6 +209,24 @@ public class PostService {
         });
     }
 
+    public Page<PostResponseDto> findAllByUserId(UUID jwtUserId, Pageable pageable) {
+        User user = userRepository.findByKeycloakId(jwtUserId)
+                .orElseThrow(() -> new NoSuchElementException("Owner with ID " + jwtUserId + " not found"));
+        Page<Post> posts = postRepository.findByUserId(user.getId(), pageable);
+
+        return posts.map(post -> {
+            PostResponseDto dto = mapper.map(post, PostResponseDto.class);
+            dto.setImages(post.getImages());
+            dto.setUpvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) 1));
+            dto.setDownvotes(voteRepository.countByPostIdAndVoteType(post.getId(), (short) -1));
+            dto.setCommentCount(commentRepository.countByPostId(post.getId()));
+            dto.setTags(postTagRepository.findTagNamesByPostId(post.getId()));
+            dto.setUserAlias(getUserAlias(post.getUserId()));
+            return dto;
+        });
+    }
+
+
 
     public String getUserAlias(UUID userId) {
         return userRepository.findAliasById(userId)
