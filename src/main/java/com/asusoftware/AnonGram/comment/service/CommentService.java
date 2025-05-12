@@ -5,6 +5,7 @@ import com.asusoftware.AnonGram.comment.model.dto.CommentRequestDto;
 import com.asusoftware.AnonGram.comment.model.dto.CommentResponseDto;
 import com.asusoftware.AnonGram.comment.repository.CommentRepository;
 import com.asusoftware.AnonGram.exception.CommentNotFoundException;
+import com.asusoftware.AnonGram.post.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
+    private final PostService postService;
     private final ModelMapper mapper;
 
     public CommentResponseDto save(CommentRequestDto dto) {
@@ -29,12 +31,18 @@ public class CommentService {
         comment.setCreatedAt(LocalDateTime.now());
 
         Comment saved = commentRepository.save(comment);
-        return mapper.map(saved, CommentResponseDto.class);
+        CommentResponseDto commentResponseDto = mapper.map(saved, CommentResponseDto.class);
+        commentResponseDto.setUserAlis(postService.getUserAlias(comment.getUserId()));
+        return commentResponseDto;
     }
 
 
     public Page<CommentResponseDto> findByPostId(UUID postId, Pageable pageable) {
-        return commentRepository.findByPostId(postId, pageable).map(comment -> mapper.map(comment, CommentResponseDto.class));
+        return commentRepository.findByPostId(postId, pageable).map(comment -> {
+            CommentResponseDto dto = mapper.map(comment, CommentResponseDto.class);
+            dto.setUserAlis(postService.getUserAlias(comment.getUserId()));
+            return dto;
+        });
     }
 
     public void deleteByIdIfOwned(UUID commentId, UUID userId) {
