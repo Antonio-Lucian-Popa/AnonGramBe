@@ -210,7 +210,7 @@ public class PostService {
     }
 
 
-    private String getUserAlias(UUID userId) {
+    public String getUserAlias(UUID userId) {
         return userRepository.findAliasById(userId)
                 .orElse("Anonymous");
     }
