@@ -7,6 +7,8 @@ import com.asusoftware.AnonGram.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -22,8 +24,8 @@ public class UserController {
 
     // Get user by Keycloak ID
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getCurrentUser(@RequestParam UUID keycloakId) {
-        return ResponseEntity.ok(mapper.map(userService.getByKeycloakId(keycloakId), UserResponseDto.class));
+    public ResponseEntity<UserResponseDto> getCurrentUser(@AuthenticationPrincipal Jwt principal) {
+        return ResponseEntity.ok(userService.getByKeycloakPrincipalDto(principal));
     }
     // Delete user (Keycloak + local)
     @DeleteMapping("/{keycloakId}")

@@ -66,9 +66,8 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:5173/",
-                "http://antonio-dev.go.ro:8081"
+                "http://192.168.25.101:19006", // dacă rulezi aplicația pe mobil (Expo Go)
+                "http://localhost:19006"       // dacă rulezi în browser sau emulator
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));

@@ -10,6 +10,7 @@ import com.asusoftware.AnonGram.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.keycloak.representations.AccessTokenResponse;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,21 @@ public class UserService {
     }
 
     public User getByKeycloakId(UUID keycloakId) {
+
         return userRepository.findByKeycloakId(keycloakId).orElseThrow(() -> new UserNotFoundException("User with keycloakId " + keycloakId + " not found"));
+    }
+
+    public User getByKeycloakPrincipal(Jwt principal) {
+        UUID keycloakId = UUID.fromString(principal.getSubject());
+        return userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    public UserResponseDto getByKeycloakPrincipalDto(Jwt principal) {
+        UUID keycloakId = UUID.fromString(principal.getSubject());
+        User user = userRepository.findByKeycloakId(keycloakId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return mapper.map(user, UserResponseDto.class);
     }
 
     public void deleteByKeycloakId(UUID keycloakId) {

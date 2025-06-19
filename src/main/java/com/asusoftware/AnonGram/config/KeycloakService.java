@@ -98,7 +98,6 @@ public class KeycloakService {
     }
 
     private AccessTokenResponse obtainToken(String username, String password) {
-        System.out.println("Obtaining token for user: " + authServerUrl + " Password: " + clientId + " in realm: " + clientSecret);
         return KeycloakBuilder.builder()
                 .serverUrl(authServerUrl)
                 .realm(realm)
